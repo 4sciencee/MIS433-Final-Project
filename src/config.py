@@ -1,0 +1,4 @@
+TICKERS = ["NVDA", "MSFT", "GOOGL", "AMZN", "AMD", "AVGO"]
+
+START_DATE = "2020-01-01"
+
