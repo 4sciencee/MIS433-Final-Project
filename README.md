@@ -40,12 +40,34 @@ The main project notebook is:
 notebooks/AI_Investment_Signals.ipynb
 ```
 
-To run it in Google Colab:
+## Setup Instructions
+
+To run locally in VS Code:
+
+1. Clone the repo.
+2. Install the required packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Copy `.env.example` to `.env`.
+4. Add your Alpha Vantage API key to `.env`:
+
+```text
+ALPHA_VANTAGE_API_KEY=your_key_here
+```
+
+5. Open `notebooks/AI_Investment_Signals.ipynb` and run the cells.
+
+To run in Google Colab:
 
 1. Open the notebook from GitHub or upload it to Colab.
 2. Mount Google Drive when prompted.
 3. Store the Alpha Vantage key in Colab Secrets as `ALPHA_VANTAGE_API_KEY`.
 4. Run the notebook cells from top to bottom.
+
+Do not commit a real `.env` file or API key to GitHub.
 
 ## Repository Structure
 
