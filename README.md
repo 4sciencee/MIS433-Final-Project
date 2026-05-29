@@ -19,9 +19,7 @@ The goal is not to predict the exact future stock price. The goal is to predict 
 - Alpha Vantage API: recent news sentiment data
 - Gemini or OpenAI API: plain-English summaries for the final application feature
 
-## Main Notebook
-
-The main notebook is:
+## AI Investment Signals Overview
 
 ```text
 notebooks/AI_Investment_Signals.ipynb
