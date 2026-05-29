@@ -16,7 +16,7 @@ FEATURE_COLUMNS = [
 
 
 def prepare_training_data(df, feature_columns=None):
-    """Keep only rows that have complete features and a known target."""
+    """Keep rows with complete model inputs and a known target."""
     feature_columns = feature_columns or FEATURE_COLUMNS
     required_columns = feature_columns + ["target_up_7d"]
     training_df = df.dropna(subset=required_columns).copy()
@@ -25,7 +25,7 @@ def prepare_training_data(df, feature_columns=None):
 
 
 def train_random_forest(train_df, feature_columns=None):
-    """Train a basic Random Forest model for short-term direction prediction."""
+    """Train a Random Forest model for short-term stock direction."""
     feature_columns = feature_columns or FEATURE_COLUMNS
     train_df = prepare_training_data(train_df, feature_columns)
     X_train = train_df[feature_columns]
@@ -37,7 +37,7 @@ def train_random_forest(train_df, feature_columns=None):
 
 
 def evaluate_classifier(model, test_df, feature_columns=None):
-    """Return standard classification metrics for the model."""
+    """Calculate basic classification metrics for the model."""
     feature_columns = feature_columns or FEATURE_COLUMNS
     test_df = prepare_training_data(test_df, feature_columns)
     X_test = test_df[feature_columns]

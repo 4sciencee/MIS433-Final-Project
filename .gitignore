@@ -30,8 +30,17 @@ data/external/*.csv
 !data/external/daily_sentiment_scores.csv
 outputs/charts/*.png
 outputs/charts/*.jpg
+!outputs/charts/normalized_stock_performance.png
+!outputs/charts/risk_return_scatter.png
+!outputs/charts/latest_sentiment_by_company.png
+!outputs/charts/model_comparison_balanced_accuracy.png
+!outputs/charts/model_feature_importance.png
 outputs/model_results/*.csv
 outputs/model_results/*.json
+!outputs/model_results/model_comparison.csv
+!outputs/model_results/test_set_predictions.csv
+!outputs/model_results/model_feature_importance.csv
+!outputs/model_results/latest_direction_predictions.csv
 outputs/screenshots/*.png
 outputs/screenshots/*.jpg
 

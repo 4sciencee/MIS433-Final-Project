@@ -9,4 +9,4 @@ python-dotenv
 jupyter
 ipykernel
 streamlit
-
+google-generativeai

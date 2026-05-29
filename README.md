@@ -1,10 +1,8 @@
 # MIS 433 AI Investment Signals
 
-Final project workspace for exploring whether historical stock trends, volatility, trading volume, and recent news sentiment can help forecast short-term investment signals among leading AI infrastructure companies.
+This project tests whether stock price trends, trading volume, volatility, and recent news sentiment can help create short-term investment signals for AI-related companies.
 
-## Project Idea
-
-This project focuses on AI-related public companies:
+The companies used in this project are:
 
 - NVDA
 - MSFT
@@ -13,138 +11,242 @@ This project focuses on AI-related public companies:
 - AMD
 - AVGO
 
-Instead of trying to predict exact future stock prices, the goal is to build a recommendation-support model that compares these companies and produces a short-term forecast/risk summary.
+The goal is not to predict the exact future stock price. The goal is to predict whether a stock may move up over the next 7 trading days.
 
-## Planned Data Sources
+## Data Sources
 
 - `yfinance`: historical stock price data from Yahoo Finance
-- Alpha Vantage API: recent news and sentiment data
-- Gemini API: AI-generated summaries using the free tier, unless OpenAI is required by the professor
+- Alpha Vantage API: recent news sentiment data
+- Gemini or OpenAI API: planned final feature for plain-English summaries
 
-## Current Workflow
+## Main Notebook
 
-1. Pull stock data with `yfinance`
-2. Clean and combine the data
-3. Create charts and basic analysis
-4. Add features like returns, moving averages, volatility, and volume change
-5. Add Alpha Vantage sentiment data
-6. Create prediction targets for short-term stock movement
-7. Build and compare simple models
-8. Use the best model setup to create current prediction signals
-9. Add AI summaries as the next project feature
+The main notebook is:
 
-## Carlos Update: Main Notebook Progress
+```text
+notebooks/AI_Investment_Signals.ipynb
+```
 
-I started working through the stock data pipeline in `notebooks/AI_Investment_Signals.ipynb`.
+The notebook is organized as a full modeling process from top to bottom:
 
-So far, I pulled stock data, cleaned it, added calculated features, added Alpha Vantage sentiment scores, tested several model setups, and created a final prediction output.
+1. Set up folders, imports, and project paths
+2. Load stock data
+3. Clean and format the stock data
+4. Create basic charts and summary statistics
+5. Add calculated features
+6. Add Alpha Vantage sentiment data
+7. Create the target variable
+8. Train and test simple models
+9. Compare model results
+10. Review feature importance
+11. Create current prediction outputs
 
-The main idea is not predicting the exact stock price. The model predicts whether a stock is likely to have a meaningful upward move over a short time period.
+The notebook uses saved CSV files by default so it runs quickly and does not repeatedly call APIs. Fresh data can still be pulled by changing the refresh options at the top of the notebook.
 
-The best setup from the current notebook is:
+## Modeling Summary
+
+The model predicts stock direction, not exact price.
+
+The current best model setup is:
 
 ```text
 Model: Random Forest
 Prediction window: 7 trading days
-Target: stock rises more than 1.5%
-Features: price/volume features + Alpha Vantage sentiment
-Metric used to choose model: balanced accuracy
+Target: stock rises more than 0.5%
+Best metric used: balanced accuracy
 ```
 
-The notebook generated these shared files and outputs:
+The notebook compares:
 
-### `model_ready_stock_data.csv`
+- Logistic Regression
+- Decision Tree
+- Random Forest
 
-This is the full cleaned dataset that combines the stock data, calculated features, sentiment data, and target columns.
+Balanced accuracy is used because it is better than regular accuracy when the up/down classes are not perfectly even.
 
-It includes:
+## Current Results
 
-- stock prices
-- ticker and date
-- calculated stock features
-- Alpha Vantage sentiment scores
-- article counts
-- future returns for different short-term windows
-- target columns used for modeling
-
-This file is useful for looking at the full dataset and understanding everything that was created.
-
-### `training_ready_stock_data.csv`
-
-This is the file set up for model training.
-
-It includes older rows where we already know what happened later. For example, the model can look at a past date, use the stock features and sentiment from that date, and learn whether the stock had a meaningful upward move later.
-
-The model inputs are columns like returns, moving averages, volatility, volume change, sentiment score, and article count.
-
-### `latest_prediction_rows.csv`
-
-This file has the newest stock rows.
-
-This file is used for current predictions, not training. It contains the newest available row for each ticker.
-
-### `daily_sentiment_scores.csv`
-
-This file is in `data/external/`.
-
-It has the daily average news sentiment score by ticker from Alpha Vantage. The sentiment score is also merged into the processed stock files, but this file is useful if we want to look at sentiment separately.
-
-### `model_comparison.csv`
-
-This file is in `outputs/model_results/`.
-
-It stores the model testing results. The notebook compares Logistic Regression, Decision Tree, and Random Forest with different prediction windows, cutoffs, and thresholds.
-
-### `focused_model_tuning.csv`
-
-This file is in `outputs/model_results/`.
-
-It stores a focused tuning test on the best setup from the broader model comparison.
-
-### `latest_direction_predictions.csv`
-
-This file is in `outputs/model_results/`.
-
-This is the final prediction output from the main notebook. It gives one current prediction for each company.
+The best current model result is:
 
 ```text
-ticker
-latest close price
-prediction signal
-prediction probability
-sentiment score
-article count
+Model: Random Forest
+Feature group: price and volume features with sentiment
+Settings: 100 trees, max depth 3, minimum leaf size 5
+Threshold: 0.45
+Accuracy: 58.3%
+Balanced accuracy: 54.6%
+F1 score for upward moves: 67.7%
 ```
 
-### Chart Outputs
+The latest prediction output gives positive signals for AMZN, MSFT, GOOGL, AVGO, and NVDA. It gives a caution signal for AMD.
 
-The main notebook also saves charts in `outputs/charts/`:
+These results are useful for comparing companies and supporting a recommendation, but they should not be treated as guaranteed stock predictions.
 
-- normalized stock performance
-- volatility comparison
-- latest sentiment by company
-- model feature importance
+## Main Data Files
 
-These can be used for the notebook, slides, or presentation screenshots.
+### `data/processed/model_ready_stock_data.csv`
 
-## Possible Modeling Flow
+Full processed dataset created by the notebook.
 
-1. Use `training_ready_stock_data.csv` to train the model.
-2. Evaluate the model on older historical data.
-3. Compare model results in `model_comparison.csv`.
-4. Use `latest_prediction_rows.csv` to make current direction predictions.
-5. Use Gemini/OpenAI to summarize the prediction results in plain English.
+This file includes:
 
-The model learns from the past, then applies what it learned to the newest rows.
+- cleaned stock price data
+- calculated stock features
+- sentiment scores
+- future return columns
+- target columns
 
-## Luca Update
+This is the full dataset used to build the training and prediction files.
 
-You can add any updates here if you want, like what you have worked on so far, any data pulls or API testing you have done, charts you created, or next steps you want to work on.
+### `data/processed/training_ready_stock_data.csv`
 
-## Notebooks
+Rows used for model training and testing.
 
-We can use the `notebooks/` folder to upload our Colab/Jupyter notebooks as we work through the project. This makes it easier to share progress and keep everything in one place.
+These rows already have a known future result. For example, the 7-day target can be calculated because the notebook can look 7 trading days ahead in the historical data.
 
+### `data/processed/latest_prediction_rows.csv`
+
+Newest row for each ticker.
+
+These rows are used for current predictions. They are not used for training because the future 7-day result is not known yet.
+
+### `data/external/daily_sentiment_scores.csv`
+
+Daily Alpha Vantage sentiment scores by ticker.
+
+The sentiment data is merged into the stock dataset so the model can use news sentiment as one of the inputs.
+
+## Output Files
+
+### `outputs/model_results/model_comparison.csv`
+
+Model testing results.
+
+This file shows the model type, model settings, accuracy, balanced accuracy, F1 score, training rows, testing rows, and split date.
+
+### `outputs/model_results/test_set_predictions.csv`
+
+Predictions made on the historical test set.
+
+This helps show how the selected model performed on older data where the correct answer is already known.
+
+### `outputs/model_results/model_feature_importance.csv`
+
+Feature importance values from the selected Random Forest model.
+
+This helps explain which variables had more influence in the model.
+
+### `outputs/model_results/latest_direction_predictions.csv`
+
+Current prediction output.
+
+This file gives one prediction for each company using the newest available row. The prediction is a direction signal, not a future price.
+
+## Chart Outputs
+
+Charts are saved in:
+
+```text
+outputs/charts/
+```
+
+Current charts include:
+
+- `normalized_stock_performance.png`: compares stock growth from the same starting point
+- `risk_return_scatter.png`: compares average daily return and volatility by company
+- `latest_sentiment_by_company.png`: compares recent average sentiment by company
+- `model_comparison_balanced_accuracy.png`: compares the strongest model tests by balanced accuracy
+- `model_feature_importance.png`: shows which features mattered most in the model
+
+## Variable Guide
+
+### Stock Price Variables
+
+- `date`: trading date
+- `ticker`: stock symbol
+- `open`: price at the start of the trading day
+- `high`: highest price during the trading day
+- `low`: lowest price during the trading day
+- `close`: price at the end of the trading day
+- `adj_close`: closing price adjusted for stock splits or dividends
+- `volume`: number of shares traded
+
+### Calculated Features
+
+- `daily_return`: percent change in close price from the previous trading day
+- `return_3d`: percent change over the past 3 trading days
+- `return_5d`: percent change over the past 5 trading days
+- `return_7d`: percent change over the past 7 trading days
+- `return_10d`: percent change over the past 10 trading days
+- `return_14d`: percent change over the past 14 trading days
+- `return_30d`: percent change over the past 30 trading days
+- `ma_7d`: 7-day moving average of the close price
+- `ma_14d`: 14-day moving average of the close price
+- `ma_30d`: 30-day moving average of the close price
+- `ma_90d`: 90-day moving average of the close price
+- `volatility_7d`: recent price movement based on daily returns over 7 trading days
+- `volatility_14d`: recent price movement based on daily returns over 14 trading days
+- `volatility_30d`: recent price movement based on daily returns over 30 trading days
+- `volume_change`: percent change in trading volume from the previous trading day
+- `avg_volume_30d`: average trading volume over the past 30 trading days
+- `volume_vs_avg_30d`: current volume compared to the 30-day average volume
+- `close_vs_ma_30d`: close price compared to the 30-day moving average
+- `ma_7d_vs_30d`: short-term moving average compared to the 30-day moving average
+
+### Sentiment Variables
+
+- `avg_sentiment_score`: average news sentiment score for the company
+- `avg_relevance_score`: average score for how closely the news relates to the company
+- `article_count`: number of news articles used for the sentiment score
+
+Positive sentiment scores usually mean more bullish news. Negative scores usually mean more bearish news. Scores close to zero are closer to neutral.
+
+### Target Variables
+
+- `future_close_3d`: close price 3 trading days later
+- `future_return_3d`: percent return 3 trading days later
+- `target_up_3d`: 1 if the stock moved up enough after 3 trading days, otherwise 0
+- `future_close_5d`: close price 5 trading days later
+- `future_return_5d`: percent return 5 trading days later
+- `target_up_5d`: 1 if the stock moved up enough after 5 trading days, otherwise 0
+- `future_close_7d`: close price 7 trading days later
+- `future_return_7d`: percent return 7 trading days later
+- `target_up_7d`: 1 if the stock moved up enough after 7 trading days, otherwise 0
+- `future_close_10d`: close price 10 trading days later
+- `future_return_10d`: percent return 10 trading days later
+- `target_up_10d`: 1 if the stock moved up enough after 10 trading days, otherwise 0
+
+The current model uses `target_up_7d`. A value of 1 means the stock rose more than 0.5% over the next 7 trading days.
+
+### Model Result Variables
+
+- `model`: model type used for testing
+- `settings`: model settings used in that test
+- `threshold`: probability cutoff used for the up/down prediction
+- `accuracy`: percent of total predictions that were correct
+- `balanced_accuracy`: accuracy adjusted for both classes
+- `f1_up`: score focused on predicting the upward-move class
+- `train_rows`: number of rows used to train the model
+- `test_rows`: number of rows used to test the model
+- `split_date`: date used to separate training data from testing data
+
+### Current Prediction Variables
+
+- `prediction_window_days`: number of trading days being predicted
+- `predicted_up`: 1 means positive signal, 0 means caution
+- `prediction_signal`: plain-English version of `predicted_up`
+- `target_cutoff_used`: minimum future return needed to count as an upward move
+- `prediction_probability_up`: model estimate for the chance of an upward move
+
+## Current Prediction Output
+
+The current prediction file gives one row per company:
+
+```text
+outputs/model_results/latest_direction_predictions.csv
+```
+
+The output should be read as a model signal, not as financial advice.
 
 ## Repository Structure
 

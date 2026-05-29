@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def add_stock_features(df):
-    """Add basic return, moving average, volatility, and volume features."""
+    """Add basic stock features used for modeling."""
     df = df.copy()
     df["daily_return"] = df.groupby("ticker")["close"].pct_change()
     df["return_7d"] = df.groupby("ticker")["close"].pct_change(7)
@@ -15,7 +15,7 @@ def add_stock_features(df):
 
 
 def add_prediction_target(df, days_ahead=7):
-    """Create a binary target for whether close price rises after a future window."""
+    """Create a target for whether close price goes up later."""
     df = df.copy()
     df["future_close_7d"] = df.groupby("ticker")["close"].shift(-days_ahead)
     df["future_return_7d"] = (df["future_close_7d"] / df["close"]) - 1
