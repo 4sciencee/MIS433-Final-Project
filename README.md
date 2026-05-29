@@ -75,6 +75,8 @@ Do not commit a real `.env` file or API key to GitHub.
 notebooks/              Jupyter notebooks for analysis and project demo
 data/                   Generated stock, sentiment, and model-ready CSV files
 src/                    Reusable Python functions
-output/                 Generated charts for notebook and slides
+outputs/charts/         Generated charts for notebook and slides
+outputs/model_results/  Model metrics and results
+outputs/screenshots/    App/dashboard screenshots for presentation
 app/                    Optional Streamlit dashboard
 ```

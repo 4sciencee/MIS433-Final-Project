@@ -21,8 +21,6 @@ data/*.csv
 data/raw/*.csv
 data/processed/*.csv
 data/external/*.csv
-output/*.png
-output/*.jpg
 outputs/charts/*.png
 outputs/charts/*.jpg
 outputs/model_results/*.csv
