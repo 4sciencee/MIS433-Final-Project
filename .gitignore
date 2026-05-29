@@ -16,6 +16,9 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
+# Local class materials
+resources/
+
 # Local data outputs
 data/*.csv
 data/raw/*.csv
