@@ -64,14 +64,6 @@ This is the file I set up for model training.
 
 It only includes rows where we already know what happened 7 trading days later. For example, the model can look at a past date, use the stock features and sentiment from that date, and learn whether the stock went up or down 7 trading days later.
 
-Example of how this file can be loaded:
-
-```python
-import pandas as pd
-
-df = pd.read_csv("data/processed/training_ready_stock_data.csv")
-```
-
 The model inputs are columns like returns, moving averages, volatility, volume change, sentiment score, and article count.
 
 The model target is:
