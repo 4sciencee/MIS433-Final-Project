@@ -98,6 +98,12 @@ This file includes:
 
 This is the full dataset used to build the training and prediction files.
 
+### `data/processed/stock_prices_clean.csv`
+
+Clean stock price dataset used near the start of the notebook.
+
+This file lets the notebook start from saved stock data instead of pulling fresh Yahoo Finance data every time.
+
 ### `data/processed/training_ready_stock_data.csv`
 
 Rows used for model training and testing.

@@ -24,6 +24,7 @@ data/*.csv
 data/raw/*.csv
 data/processed/*.csv
 data/external/*.csv
+!data/processed/stock_prices_clean.csv
 !data/processed/model_ready_stock_data.csv
 !data/processed/training_ready_stock_data.csv
 !data/processed/latest_prediction_rows.csv
