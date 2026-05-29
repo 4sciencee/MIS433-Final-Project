@@ -28,19 +28,30 @@ Instead of trying to predict exact future stock prices, the goal is to build a r
 3. Create charts and basic analysis
 4. Add features like returns, moving averages, volatility, and volume change
 5. Add Alpha Vantage sentiment data
-6. Create a 7-day prediction target
-7. Build and evaluate a simple model
-8. Generate AI summaries
+6. Create prediction targets for short-term stock movement
+7. Build and compare simple models
+8. Use the best model setup to create current prediction signals
+9. Add AI summaries as the next project feature
 
-## Carlos Update: Processed Data Files
+## Carlos Update: Main Notebook Progress
 
 I started working through the stock data pipeline in `notebooks/AI_Investment_Signals.ipynb`.
 
-So far, I pulled stock data, cleaned it, added calculated features, added Alpha Vantage sentiment scores, and created a 7-day up/down target for the model.
+So far, I pulled stock data, cleaned it, added calculated features, added Alpha Vantage sentiment scores, tested several model setups, and created a final prediction output.
 
-The main idea I used here is not predicting the exact stock price, but predicting whether a stock is up or not up 7 trading days later.
+The main idea is not predicting the exact stock price. The model predicts whether a stock is likely to have a meaningful upward move over a short time period.
 
-The notebook generated these shared files:
+The best setup from the current notebook is:
+
+```text
+Model: Random Forest
+Prediction window: 7 trading days
+Target: stock rises more than 1.5%
+Features: price/volume features + Alpha Vantage sentiment
+Metric used to choose model: balanced accuracy
+```
+
+The notebook generated these shared files and outputs:
 
 ### `model_ready_stock_data.csv`
 
@@ -53,43 +64,24 @@ It includes:
 - calculated stock features
 - Alpha Vantage sentiment scores
 - article counts
-- the 7-day future return
-- the 7-day up/down target
+- future returns for different short-term windows
+- target columns used for modeling
 
 This file is useful for looking at the full dataset and understanding everything that was created.
 
 ### `training_ready_stock_data.csv`
 
-This is the file I set up for model training.
+This is the file set up for model training.
 
-It only includes rows where we already know what happened 7 trading days later. For example, the model can look at a past date, use the stock features and sentiment from that date, and learn whether the stock went up or down 7 trading days later.
+It includes older rows where we already know what happened later. For example, the model can look at a past date, use the stock features and sentiment from that date, and learn whether the stock had a meaningful upward move later.
 
 The model inputs are columns like returns, moving averages, volatility, volume change, sentiment score, and article count.
-
-The model target is:
-
-```text
-target_up_7d
-```
-
-Where:
-
-```text
-1 = the stock went up 7 trading days later
-0 = the stock did not go up 7 trading days later
-```
 
 ### `latest_prediction_rows.csv`
 
 This file has the newest stock rows.
 
-This file shouldn't be used for training because the future 7-day result has not happened yet. Instead, after training the model using `training_ready_stock_data.csv`, it can be used to make current predictions.
-
-The prediction is not an exact future stock price. The model is predicting direction:
-
-```text
-Will this stock likely be up or not up 7 trading days from now?
-```
+This file is used for current predictions, not training. It contains the newest available row for each ticker.
 
 ### `daily_sentiment_scores.csv`
 
@@ -97,21 +89,51 @@ This file is in `data/external/`.
 
 It has the daily average news sentiment score by ticker from Alpha Vantage. The sentiment score is also merged into the processed stock files, but this file is useful if we want to look at sentiment separately.
 
-### Why The Files Are Split This Way
+### `model_comparison.csv`
 
-The newest 7 trading days do not have a real answer yet because we do not know what the stock price will be 7 trading days later.
+This file is in `outputs/model_results/`.
 
-Because of that, the rows are split into two groups:
+It stores the model testing results. The notebook compares Logistic Regression, Decision Tree, and Random Forest with different prediction windows, cutoffs, and thresholds.
 
-- `training_ready_stock_data.csv`: older rows where the 7-day result is already known
-- `latest_prediction_rows.csv`: newest rows where the model can make predictions, but we cannot train on them yet
+### `focused_model_tuning.csv`
+
+This file is in `outputs/model_results/`.
+
+It stores a focused tuning test on the best setup from the broader model comparison.
+
+### `latest_direction_predictions.csv`
+
+This file is in `outputs/model_results/`.
+
+This is the final prediction output from the main notebook. It gives one current prediction for each company.
+
+```text
+ticker
+latest close price
+prediction signal
+prediction probability
+sentiment score
+article count
+```
+
+### Chart Outputs
+
+The main notebook also saves charts in `outputs/charts/`:
+
+- normalized stock performance
+- volatility comparison
+- latest sentiment by company
+- model feature importance
+
+These can be used for the notebook, slides, or presentation screenshots.
 
 ## Possible Modeling Flow
 
 1. Use `training_ready_stock_data.csv` to train the model.
 2. Evaluate the model on older historical data.
-3. Use `latest_prediction_rows.csv` to make current 7-day direction predictions.
-4. Use AI to summarize the model results in plain English.
+3. Compare model results in `model_comparison.csv`.
+4. Use `latest_prediction_rows.csv` to make current direction predictions.
+5. Use Gemini/OpenAI to summarize the prediction results in plain English.
 
 The model learns from the past, then applies what it learned to the newest rows.
 
