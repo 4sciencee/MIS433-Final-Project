@@ -17,8 +17,10 @@ def add_stock_features(df):
 def add_prediction_target(df, days_ahead=7):
     """Create a binary target for whether close price rises after a future window."""
     df = df.copy()
-    future_close = df.groupby("ticker")["close"].shift(-days_ahead)
-    df["future_return_7d"] = (future_close / df["close"]) - 1
-    df["target_up_7d"] = (df["future_return_7d"] > 0).astype(int)
+    df["future_close_7d"] = df.groupby("ticker")["close"].shift(-days_ahead)
+    df["future_return_7d"] = (df["future_close_7d"] / df["close"]) - 1
+    df["target_up_7d"] = (df["future_return_7d"] > 0).where(
+        df["future_close_7d"].notna()
+    )
+    df["target_up_7d"] = df["target_up_7d"].astype("Int64")
     return df
-

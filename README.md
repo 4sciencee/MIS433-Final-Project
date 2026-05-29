@@ -32,6 +32,19 @@ Instead of trying to predict exact future stock prices, the goal is to build a r
 7. Build and evaluate a simple model
 8. Generate AI summaries
 
+## Shared Data Files
+
+The main shared datasets are:
+
+```text
+data/processed/model_ready_stock_data.csv     Cleaned data with features, sentiment, and target columns
+data/processed/training_ready_stock_data.csv  Rows that are safe to use for model training
+data/processed/latest_prediction_rows.csv     Newest rows where the 7-day future result is not known yet
+data/external/daily_sentiment_scores.csv      Daily Alpha Vantage sentiment summary by ticker
+```
+
+The newest 7 trading days do not have a real 7-day outcome yet, so those rows should be used for prediction only, not for training.
+
 ## Main Notebook
 
 The main project notebook is:

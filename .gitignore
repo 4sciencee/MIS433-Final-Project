@@ -22,6 +22,8 @@ data/raw/*.csv
 data/processed/*.csv
 data/external/*.csv
 !data/processed/model_ready_stock_data.csv
+!data/processed/training_ready_stock_data.csv
+!data/processed/latest_prediction_rows.csv
 !data/external/daily_sentiment_scores.csv
 outputs/charts/*.png
 outputs/charts/*.jpg
