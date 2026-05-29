@@ -34,6 +34,8 @@ outputs/charts/*.jpg
 !outputs/charts/normalized_stock_performance.png
 !outputs/charts/risk_return_scatter.png
 !outputs/charts/latest_sentiment_by_company.png
+!outputs/charts/target_distribution_7d.png
+!outputs/charts/target_feature_comparison.png
 !outputs/charts/model_comparison_balanced_accuracy.png
 !outputs/charts/model_feature_importance.png
 outputs/model_results/*.csv

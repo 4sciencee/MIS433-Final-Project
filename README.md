@@ -1,6 +1,6 @@
 # MIS 433 AI Investment Signals
 
-This project tests whether stock price trends, trading volume, volatility, and recent news sentiment can help create short-term investment signals for AI-related companies.
+This project uses stock price trends, trading volume, volatility, and recent news sentiment to create short-term investment signals for AI-related companies.
 
 The companies used in this project are:
 
@@ -17,7 +17,7 @@ The goal is not to predict the exact future stock price. The goal is to predict 
 
 - `yfinance`: historical stock price data from Yahoo Finance
 - Alpha Vantage API: recent news sentiment data
-- Gemini or OpenAI API: planned final feature for plain-English summaries
+- Gemini or OpenAI API: plain-English summaries for the final application feature
 
 ## Main Notebook
 
@@ -36,10 +36,11 @@ The notebook is organized as a full modeling process from top to bottom:
 5. Add calculated features
 6. Add Alpha Vantage sentiment data
 7. Create the target variable
-8. Train and test simple models
-9. Compare model results
-10. Review feature importance
-11. Create current prediction outputs
+8. Compare important variables against the target
+9. Train and test Logistic Regression, Decision Tree, and Random Forest models
+10. Compare model results
+11. Review feature importance
+12. Create current prediction outputs
 
 The notebook uses saved CSV files by default so it runs quickly and does not repeatedly call APIs. Fresh data can still be pulled by changing the refresh options at the top of the notebook.
 
@@ -62,7 +63,7 @@ The notebook compares:
 - Decision Tree
 - Random Forest
 
-Balanced accuracy is used because it is better than regular accuracy when the up/down classes are not perfectly even.
+Balanced accuracy is used to evaluate both target classes.
 
 ## Current Results
 
@@ -80,7 +81,7 @@ F1 score for upward moves: 67.7%
 
 The latest prediction output gives positive signals for AMZN, MSFT, GOOGL, AVGO, and NVDA. It gives a caution signal for AMD.
 
-These results are useful for comparing companies and supporting a recommendation, but they should not be treated as guaranteed stock predictions.
+These results compare companies and produce a model signal. They are not guaranteed stock predictions.
 
 ## Main Data Files
 
@@ -134,13 +135,13 @@ This file shows the model type, model settings, accuracy, balanced accuracy, F1 
 
 Predictions made on the historical test set.
 
-This helps show how the selected model performed on older data where the correct answer is already known.
+This file shows how the selected model performed on older data where the correct answer is already known.
 
 ### `outputs/model_results/model_feature_importance.csv`
 
 Feature importance values from the selected Random Forest model.
 
-This helps explain which variables had more influence in the model.
+This file shows which variables had more influence in the model.
 
 ### `outputs/model_results/latest_direction_predictions.csv`
 
@@ -161,6 +162,8 @@ Current charts include:
 - `normalized_stock_performance.png`: compares stock growth from the same starting point
 - `risk_return_scatter.png`: compares average daily return and volatility by company
 - `latest_sentiment_by_company.png`: compares recent average sentiment by company
+- `target_distribution_7d.png`: shows how many rows are in each target class
+- `target_feature_comparison.png`: compares important feature averages against the target
 - `model_comparison_balanced_accuracy.png`: compares the strongest model tests by balanced accuracy
 - `model_feature_importance.png`: shows which features mattered most in the model
 
