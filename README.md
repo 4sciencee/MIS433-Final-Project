@@ -73,7 +73,9 @@ Do not commit a real `.env` file or API key to GitHub.
 
 ```text
 notebooks/              Jupyter notebooks for analysis and project demo
-data/                   Generated stock, sentiment, and model-ready CSV files
+data/raw/               Original downloaded stock CSV files
+data/processed/         Cleaned and model-ready CSV files
+data/external/          API and sentiment CSV files
 src/                    Reusable Python functions
 outputs/charts/         Generated charts for notebook and slides
 outputs/model_results/  Model metrics and results
