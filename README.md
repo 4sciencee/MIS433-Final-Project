@@ -39,6 +39,8 @@ The notebook is organized as a full modeling process from top to bottom:
 10. Compare model results
 11. Review feature importance
 12. Create current prediction outputs
+13. Summarize the selected model and current signals
+14. Run the notebook application features
 
 The notebook uses saved CSV files by default so it runs quickly and does not repeatedly call APIs. Fresh data can still be pulled by changing the refresh options at the top of the notebook.
 
@@ -254,6 +256,25 @@ outputs/model_results/latest_direction_predictions.csv
 ```
 
 The output should be read as a model signal, not as financial advice.
+
+## Notebook Application
+
+The final section of the notebook is an application called `AI Investment Signal Assistant`.
+
+The application uses:
+
+- processed stock data
+- model prediction results
+- Alpha Vantage sentiment data
+- Gemini AI summaries when a `GEMINI_API_KEY` is available
+
+Application features:
+
+- Single Company Briefing: selects one ticker and returns a signal summary
+- Company Comparison: compares two tickers using prediction, sentiment, return, and volatility
+- Watchlist Builder: ranks selected tickers based on risk preference
+
+The notebook includes example outputs and widget controls for dropdown/button interaction.
 
 ## Repository Structure
 

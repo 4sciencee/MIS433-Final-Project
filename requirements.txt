@@ -10,3 +10,4 @@ jupyter
 ipykernel
 streamlit
 google-generativeai
+ipywidgets
