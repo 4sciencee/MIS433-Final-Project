@@ -17,7 +17,7 @@ The goal is not to predict the exact future stock price. The goal is to predict 
 
 - `yfinance`: historical stock price data from Yahoo Finance
 - Alpha Vantage API: recent news sentiment data
-- Gemini or OpenAI API: plain-English summaries for the final application feature
+- OpenAI API: plain-English summaries for the final application feature
 
 ## AI Investment Signals Overview
 
@@ -266,7 +266,7 @@ The application uses:
 - processed stock data
 - model prediction results
 - Alpha Vantage sentiment data
-- Gemini AI summaries when a `GEMINI_API_KEY` is available
+- OpenAI summaries when an OpenAI key is available
 
 Application features:
 
