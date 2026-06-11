@@ -71,8 +71,8 @@ The best current model result is:
 Model: Random Forest
 Settings: 100 trees, max depth 6
 Prediction threshold: 0.50
-Accuracy: 62.0%
-Balanced accuracy: 61.8%
+Accuracy: 61.8%
+Balanced accuracy: 61.7%
 ```
 
 The latest prediction output gives positive signals for AMD and MSFT. It gives caution signals for AMZN, GOOGL, NVDA, and AVGO.
@@ -233,7 +233,7 @@ Application features:
 
 - Single Company Briefing: selects one ticker and returns a signal summary
 - Company Comparison: compares two tickers using prediction, sentiment, return, and volatility
-- Watchlist Builder: ranks selected tickers based on risk preference
+- Watchlist Review: ranks the six tickers based on risk preference and signal filter
 
 The notebook includes example outputs and widget controls for dropdown/button interaction.
 
@@ -241,10 +241,8 @@ The notebook includes example outputs and widget controls for dropdown/button in
 
 ```text
 notebooks/              Jupyter notebooks for analysis and project demo
-data/raw/               Original downloaded stock CSV files
 data/processed/         Cleaned and model-ready CSV files
 data/external/          API and sentiment CSV files
 outputs/charts/         Generated charts for notebook and slides
 outputs/model_results/  Model metrics and results
-outputs/screenshots/    Optional screenshots for presentation
 ```
