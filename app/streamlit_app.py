@@ -1954,7 +1954,7 @@ def make_indexed_price_chart(data, height=300):
 
     base = alt.Chart(indexed).encode(
         x=alt.X("date:T", title=None),
-        y=alt.Y("Indexed Close:Q", title="Indexed close"),
+        y=alt.Y("Indexed Close:Q", title="Indexed close", scale=alt.Scale(zero=False)),
         color=alt.Color(
             "Company:N",
             scale=alt.Scale(range=[COLOR_TOKENS["info"], COLOR_TOKENS["strong"]]),
