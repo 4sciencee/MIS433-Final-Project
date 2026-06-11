@@ -2272,70 +2272,92 @@ def render_streamlit_dashboard(prediction_table, chart_history_df, data_status):
 
         company_a = get_company_row(ranked, ticker_a)
         company_b = get_company_row(ranked, ticker_b)
-        leader = company_a if company_a["Probability"] >= company_b["Probability"] else company_b
+        risk_settings = {
+            "Low": {"volatility_weight": 0.75, "return_weight": 0.05},
+            "Medium": {"volatility_weight": 0.35, "return_weight": 0.10},
+            "High": {"volatility_weight": 0.15, "return_weight": 0.18},
+        }
+        risk_weights = risk_settings[risk_preference]
+        score_a = (
+            company_a["Probability"]
+            + (company_a["Sentiment"] * 0.05)
+            + (company_a["7-Day Return"] * risk_weights["return_weight"])
+            - (company_a["30-Day Volatility"] * risk_weights["volatility_weight"])
+        )
+        score_b = (
+            company_b["Probability"]
+            + (company_b["Sentiment"] * 0.05)
+            + (company_b["7-Day Return"] * risk_weights["return_weight"])
+            - (company_b["30-Day Volatility"] * risk_weights["volatility_weight"])
+        )
+        leader = company_a if score_a >= score_b else company_b
+        other = company_b if leader is company_a else company_a
+        leader_score = score_a if leader is company_a else score_b
+        other_score = score_b if leader is company_a else score_a
+        margin_points = (leader_score - other_score) * 100
+
+        reasons = []
+        if leader["Probability"] >= other["Probability"]:
+            reasons.append("higher probability")
+        if leader["Sentiment"] >= other["Sentiment"]:
+            reasons.append("stronger sentiment")
+        if leader["30-Day Volatility"] <= other["30-Day Volatility"]:
+            reasons.append("lower volatility")
+        if leader["7-Day Return"] >= other["7-Day Return"]:
+            reasons.append("better recent return")
+        reason_text = ", ".join(reasons[:3]) if reasons else "stronger risk-adjusted score"
 
         st.markdown(
             f"""
-            <div class="result-banner">Stronger short-term signal: {leader['Ticker']} at {format_percent(leader['Probability'])}</div>
+            <div class="result-banner">
+                Stronger risk-adjusted view: {leader['Ticker']} (+{margin_points:.1f} pts)
+                <div class="small-note" style="margin-top:4px;color:var(--color-strong-text);">
+                    Main reasons: {reason_text}. Risk preference selected: {risk_preference}.
+                </div>
+            </div>
             """,
             unsafe_allow_html=True,
         )
 
-        metric_col1, metric_col2 = st.columns(2)
-        with metric_col1:
-            render_section_title(company_a["Ticker"], "Company A")
-            a1, a2 = st.columns(2)
-            a1.metric("Probability", format_percent(company_a["Probability"]))
-            a2.metric("7-day return", format_percent(company_a["7-Day Return"]))
-            a3, a4 = st.columns(2)
-            a3.metric("Volatility", format_percent(company_a["30-Day Volatility"]))
-            a4.metric("Sentiment", f"{company_a['Sentiment']:.3f}")
-        with metric_col2:
-            render_section_title(company_b["Ticker"], "Company B")
-            b1, b2 = st.columns(2)
-            b1.metric("Probability", format_percent(company_b["Probability"]))
-            b2.metric("7-day return", format_percent(company_b["7-Day Return"]))
-            b3, b4 = st.columns(2)
-            b3.metric("Volatility", format_percent(company_b["30-Day Volatility"]))
-            b4.metric("Sentiment", f"{company_b['Sentiment']:.3f}")
-
-        comparison_chart = pd.DataFrame(
-            [
-                {
-                    "Company": company_a["Ticker"],
-                    "Probability": company_a["Probability"],
-                    "Volatility": company_a["30-Day Volatility"],
-                    "Sentiment": company_a["Sentiment"],
-                },
-                {
-                    "Company": company_b["Ticker"],
-                    "Probability": company_b["Probability"],
-                    "Volatility": company_b["30-Day Volatility"],
-                    "Sentiment": company_b["Sentiment"],
-                },
-            ]
+        render_section_title(
+            "Side-by-Side Metrics",
+            "Each row uses its own scale, so probability, return, volatility, and sentiment are not mixed on one axis.",
         )
-        comparison_chart_long = comparison_chart.melt(
-            id_vars="Company",
-            var_name="Metric",
-            value_name="Value",
+        render_metric_pair(
+            "Probability",
+            company_a["Ticker"],
+            company_a["Probability"],
+            company_b["Ticker"],
+            company_b["Probability"],
+            True,
+            format_percent,
         )
-        return_chart = pd.DataFrame(
-            {
-                "7-Day Return": [
-                    company_a["7-Day Return"],
-                    company_b["7-Day Return"],
-                ]
-            },
-            index=[company_a["Ticker"], company_b["Ticker"]],
+        render_metric_pair(
+            "7-day return",
+            company_a["Ticker"],
+            company_a["7-Day Return"],
+            company_b["Ticker"],
+            company_b["7-Day Return"],
+            True,
+            format_percent,
         )
-        render_section_title("Side-by-Side Metrics", "Compares probability, volatility, and sentiment by company.")
-        st.altair_chart(make_grouped_bar_chart(comparison_chart_long, 250), use_container_width=True)
-        render_section_title("Recent Return", "Shows recent 7-day price movement separately because returns can be negative.")
-        return_chart_df = return_chart.reset_index().rename(columns={"index": "Company"})
-        st.altair_chart(
-            make_bar_chart(return_chart_df, "Company", "7-Day Return", "#F4B860", 180),
-            use_container_width=True,
+        render_metric_pair(
+            "Volatility",
+            company_a["Ticker"],
+            company_a["30-Day Volatility"],
+            company_b["Ticker"],
+            company_b["30-Day Volatility"],
+            False,
+            format_percent,
+        )
+        render_metric_pair(
+            "Sentiment",
+            company_a["Ticker"],
+            company_a["Sentiment"],
+            company_b["Ticker"],
+            company_b["Sentiment"],
+            True,
+            lambda value: f"{value:.3f}",
         )
 
         history_a = chart_history_df[chart_history_df["ticker"] == company_a["Ticker"]].sort_values("date").tail(90)
@@ -2347,18 +2369,19 @@ def render_streamlit_dashboard(prediction_table, chart_history_df, data_status):
             ],
             ignore_index=True,
         ).rename(columns={"close": "Close"})
-        render_section_title("Closing Price Trend - Last 90 Days", "Shows recent price movement for both selected companies.")
-        st.altair_chart(make_line_chart(price_chart, 300), use_container_width=True)
-
-        st.markdown(
-            """
-            <div class="ai-panel-title">AI comparison summary</div>
-            <div class="ai-panel-copy">Generate a plain-English comparison after choosing the two companies and risk preference.</div>
-            """,
-            unsafe_allow_html=True,
+        render_section_title(
+            "Closing Price Trend - Last 90 Days",
+            "Indexed to 100 at the start so the user compares movement, not raw stock price level.",
         )
-        if st.button("Generate comparison summary", use_container_width=True, key="comparison_summary_button"):
-            st.info(get_comparison_summary(company_a, company_b, risk_preference))
+        st.altair_chart(make_indexed_price_chart(price_chart, 310), use_container_width=True)
+
+        render_secondary_ai_action(
+            "AI comparison summary",
+            "Generate a plain-English comparison after choosing the two companies and risk preference.",
+            "Generate comparison summary",
+            "comparison_summary_button",
+            lambda: get_comparison_summary(company_a, company_b, risk_preference),
+        )
 
     with tabs[2]:
         render_page_intro(
