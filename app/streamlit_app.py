@@ -2189,49 +2189,53 @@ def render_streamlit_dashboard(prediction_table, chart_history_df, data_status):
 
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            render_kpi_card("Strongest signal", top_company["Ticker"], format_percent(top_company["Probability"]))
+            render_kpi_card("Strongest signal", top_company["Ticker"], format_percent(top_company["Probability"]), "strong")
         with col2:
-            render_kpi_card("Weakest signal", weakest_company["Ticker"], format_percent(weakest_company["Probability"]))
+            render_kpi_card("Weakest signal", weakest_company["Ticker"], format_percent(weakest_company["Probability"]), "caution")
         with col3:
-            render_kpi_card("Best news sentiment", highest_sentiment["Ticker"], f"{highest_sentiment['Sentiment']:.3f}")
+            render_kpi_card("Best news sentiment", highest_sentiment["Ticker"], f"{highest_sentiment['Sentiment']:.3f}", "info")
         with col4:
-            render_kpi_card("Highest volatility", highest_volatility["Ticker"], format_percent(highest_volatility["30-Day Volatility"]))
+            render_kpi_card("Highest volatility", highest_volatility["Ticker"], format_percent(highest_volatility["30-Day Volatility"]), "negative")
 
         chart_col1, chart_col2 = st.columns(2)
         with chart_col1:
-            render_section_title("Upward-Move Probability", "Higher values mean stronger conditions for a 7-trading-day upward move.")
-            probability_chart_df = ranked[["Ticker", "Probability"]].copy()
-            st.altair_chart(
-                make_bar_chart(probability_chart_df, "Ticker", "Probability", "#7EC4F7", 260),
-                use_container_width=True,
+            render_section_title(
+                "Upward-Move Probability",
+                "Sorted high to low. Dashed line = 50%. Axis is zoomed so the real spread is visible.",
             )
+            probability_chart_df = ranked[["Ticker", "Probability"]].copy()
+            st.altair_chart(make_probability_dot_plot(probability_chart_df, 270), use_container_width=True)
         with chart_col2:
             render_section_title("News Sentiment", "Alpha Vantage sentiment compares recent news tone by company.")
-            sentiment_chart_df = ranked[["Ticker", "Sentiment"]].copy()
-            st.altair_chart(
-                make_bar_chart(sentiment_chart_df, "Ticker", "Sentiment", "#8EEA76", 260),
-                use_container_width=True,
-            )
+            sentiment_chart_df = ranked[["Ticker", "Sentiment"]].sort_values("Sentiment", ascending=False).copy()
+            st.altair_chart(make_sentiment_bar_chart(sentiment_chart_df, 270), use_container_width=True)
 
         render_section_title("Company Signal Table", "Detailed values used to compare the six AI-related companies.")
-        st.dataframe(
-            prepare_display_table(
-                ranked[
-                    [
-                        "Ticker",
-                        "Signal",
-                        "Probability",
-                        "Latest Close",
-                        "7-Day Return",
-                        "30-Day Volatility",
-                        "Sentiment",
-                        "Articles",
-                    ]
-                ]
-            ),
-            use_container_width=True,
-            hide_index=True,
-            height=250,
+        overview_table = ranked[
+            [
+                "Ticker",
+                "Probability",
+                "Latest Close",
+                "7-Day Return",
+                "30-Day Volatility",
+                "Sentiment",
+                "Articles",
+            ]
+        ].copy()
+        overview_table.insert(1, "Signal", overview_table["Probability"].map(signal_display))
+        display_table(overview_table, height=250)
+
+        action_col1, action_col2 = st.columns([1.2, 1])
+        selected_company = action_col1.selectbox(
+            "Select a company for the comparison tab",
+            ranked["Ticker"],
+            key="overview_selected_company",
+        )
+        if action_col2.button("Use selected company in Compare", type="secondary", key="overview_compare_action"):
+            st.session_state["compare_company_a"] = selected_company
+            st.toast(f"{selected_company} selected for the comparison tab.")
+        st.caption(
+            "Watchlist review already includes all companies, so the native action here focuses on selecting a company to compare."
         )
 
         with st.expander("What this overview shows"):
@@ -2240,15 +2244,13 @@ def render_streamlit_dashboard(prediction_table, chart_history_df, data_status):
                 "and Alpha Vantage sentiment so the user can compare all six companies before choosing one."
             )
 
-        st.markdown(
-            """
-            <div class="ai-panel-title">AI overview summary</div>
-            <div class="ai-panel-copy">Generate a short explanation only after reviewing the dashboard. This keeps the app intentional and avoids unnecessary API calls.</div>
-            """,
-            unsafe_allow_html=True,
+        render_secondary_ai_action(
+            "AI overview summary",
+            "Generate a short explanation only after reviewing the dashboard.",
+            "Generate overview summary",
+            "overview_summary_button",
+            lambda: get_overview_summary(ranked),
         )
-        if st.button("Generate overview summary", use_container_width=True, key="overview_summary_button"):
-            st.info(get_overview_summary(ranked))
 
     with tabs[1]:
         render_page_intro(
