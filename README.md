@@ -25,7 +25,7 @@ The goal is not to predict the exact future stock price. The goal is to predict 
 notebooks/AI_Investment_Signals.ipynb
 ```
 
-The notebook is organized as a full modeling process from top to bottom:
+This notebook is organized as a full modeling process from top to bottom:
 
 1. Set up folders, imports, and project paths
 2. Load stock data
@@ -34,13 +34,11 @@ The notebook is organized as a full modeling process from top to bottom:
 5. Add calculated features
 6. Add Alpha Vantage sentiment data
 7. Create the target variable
-8. Compare important variables against the target
+8. Create exploratory data analysis charts
 9. Train and test Logistic Regression, Decision Tree, and Random Forest models
 10. Compare model results
-11. Review feature importance
-12. Create current prediction outputs
-13. Summarize the selected model and current signals
-14. Run the notebook application features
+11. Create current prediction outputs
+12. Run the notebook application features
 
 The notebook uses saved CSV files by default so it runs quickly and does not repeatedly call APIs. Fresh data can still be pulled by changing the refresh options at the top of the notebook.
 
@@ -53,7 +51,7 @@ The current best model setup is:
 ```text
 Model: Random Forest
 Prediction window: 7 trading days
-Target: stock rises more than 0.5%
+Target: stock rises more than 1%
 Best metric used: balanced accuracy
 ```
 
@@ -71,15 +69,13 @@ The best current model result is:
 
 ```text
 Model: Random Forest
-Feature group: price and volume features with sentiment
-Settings: 100 trees, max depth 3, minimum leaf size 5
-Threshold: 0.45
-Accuracy: 58.3%
-Balanced accuracy: 54.6%
-F1 score for upward moves: 67.7%
+Settings: 100 trees, max depth 6
+Prediction threshold: 0.50
+Accuracy: 62.0%
+Balanced accuracy: 61.8%
 ```
 
-The latest prediction output gives positive signals for AMZN, MSFT, GOOGL, AVGO, and NVDA. It gives a caution signal for AMD.
+The latest prediction output gives positive signals for AMD and MSFT. It gives caution signals for AMZN, GOOGL, NVDA, and AVGO.
 
 These results compare companies and produce a model signal. They are not guaranteed stock predictions.
 
@@ -129,19 +125,7 @@ The sentiment data is merged into the stock dataset so the model can use news se
 
 Model testing results.
 
-This file shows the model type, model settings, accuracy, balanced accuracy, F1 score, training rows, testing rows, and split date.
-
-### `outputs/model_results/test_set_predictions.csv`
-
-Predictions made on the historical test set.
-
-This file shows how the selected model performed on older data where the correct answer is already known.
-
-### `outputs/model_results/model_feature_importance.csv`
-
-Feature importance values from the selected Random Forest model.
-
-This file shows which variables had more influence in the model.
+This file shows the model type, accuracy, and balanced accuracy.
 
 ### `outputs/model_results/latest_direction_predictions.csv`
 
@@ -163,9 +147,7 @@ Current charts include:
 - `risk_return_scatter.png`: compares average daily return and volatility by company
 - `latest_sentiment_by_company.png`: compares recent average sentiment by company
 - `target_distribution_7d.png`: shows how many rows are in each target class
-- `target_feature_comparison.png`: compares important feature averages against the target
 - `model_comparison_balanced_accuracy.png`: compares the strongest model tests by balanced accuracy
-- `model_feature_importance.png`: shows which features mattered most in the model
 
 ## Variable Guide
 
@@ -183,24 +165,13 @@ Current charts include:
 ### Calculated Features
 
 - `daily_return`: percent change in close price from the previous trading day
-- `return_3d`: percent change over the past 3 trading days
-- `return_5d`: percent change over the past 5 trading days
 - `return_7d`: percent change over the past 7 trading days
-- `return_10d`: percent change over the past 10 trading days
-- `return_14d`: percent change over the past 14 trading days
 - `return_30d`: percent change over the past 30 trading days
 - `ma_7d`: 7-day moving average of the close price
-- `ma_14d`: 14-day moving average of the close price
 - `ma_30d`: 30-day moving average of the close price
 - `ma_90d`: 90-day moving average of the close price
-- `volatility_7d`: recent price movement based on daily returns over 7 trading days
-- `volatility_14d`: recent price movement based on daily returns over 14 trading days
 - `volatility_30d`: recent price movement based on daily returns over 30 trading days
 - `volume_change`: percent change in trading volume from the previous trading day
-- `avg_volume_30d`: average trading volume over the past 30 trading days
-- `volume_vs_avg_30d`: current volume compared to the 30-day average volume
-- `close_vs_ma_30d`: close price compared to the 30-day moving average
-- `ma_7d_vs_30d`: short-term moving average compared to the 30-day moving average
 
 ### Sentiment Variables
 
@@ -212,39 +183,29 @@ Positive sentiment scores usually mean more bullish news. Negative scores usuall
 
 ### Target Variables
 
-- `future_close_3d`: close price 3 trading days later
-- `future_return_3d`: percent return 3 trading days later
-- `target_up_3d`: 1 if the stock moved up enough after 3 trading days, otherwise 0
-- `future_close_5d`: close price 5 trading days later
-- `future_return_5d`: percent return 5 trading days later
-- `target_up_5d`: 1 if the stock moved up enough after 5 trading days, otherwise 0
 - `future_close_7d`: close price 7 trading days later
 - `future_return_7d`: percent return 7 trading days later
 - `target_up_7d`: 1 if the stock moved up enough after 7 trading days, otherwise 0
-- `future_close_10d`: close price 10 trading days later
-- `future_return_10d`: percent return 10 trading days later
-- `target_up_10d`: 1 if the stock moved up enough after 10 trading days, otherwise 0
 
-The current model uses `target_up_7d`. A value of 1 means the stock rose more than 0.5% over the next 7 trading days.
+The notebook uses `target_up_7d`. A value of 1 means the stock rose more than 1% over the next 7 trading days.
 
 ### Model Result Variables
 
 - `model`: model type used for testing
-- `settings`: model settings used in that test
-- `threshold`: probability cutoff used for the up/down prediction
 - `accuracy`: percent of total predictions that were correct
 - `balanced_accuracy`: accuracy adjusted for both classes
-- `f1_up`: score focused on predicting the upward-move class
-- `train_rows`: number of rows used to train the model
-- `test_rows`: number of rows used to test the model
-- `split_date`: date used to separate training data from testing data
 
 ### Current Prediction Variables
 
-- `prediction_window_days`: number of trading days being predicted
+- `date`: newest trading date used for the company
+- `ticker`: stock symbol
+- `close`: latest close price
+- `return_7d`: recent 7-day return
+- `volatility_30d`: recent 30-day volatility
+- `avg_sentiment_score`: recent Alpha Vantage news sentiment score
+- `article_count`: number of recent articles used for sentiment
 - `predicted_up`: 1 means positive signal, 0 means caution
 - `prediction_signal`: plain-English version of `predicted_up`
-- `target_cutoff_used`: minimum future return needed to count as an upward move
 - `prediction_probability_up`: model estimate for the chance of an upward move
 
 ## Current Prediction Output
@@ -283,9 +244,7 @@ notebooks/              Jupyter notebooks for analysis and project demo
 data/raw/               Original downloaded stock CSV files
 data/processed/         Cleaned and model-ready CSV files
 data/external/          API and sentiment CSV files
-src/                    Reusable Python functions
 outputs/charts/         Generated charts for notebook and slides
 outputs/model_results/  Model metrics and results
-outputs/screenshots/    App/dashboard screenshots for presentation
-app/                    Optional Streamlit dashboard
+outputs/screenshots/    Optional screenshots for presentation
 ```

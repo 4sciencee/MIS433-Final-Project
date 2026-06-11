@@ -8,7 +8,5 @@ requests
 python-dotenv
 jupyter
 ipykernel
-streamlit
-altair
 openai
 ipywidgets
