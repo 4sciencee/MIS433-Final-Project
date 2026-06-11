@@ -235,7 +235,7 @@ Application features:
 - Company Comparison: compares two tickers using prediction, sentiment, return, and volatility
 - Watchlist Review: ranks the six tickers based on risk preference and signal filter
 
-The notebook includes example outputs and widget controls for dropdown/button interaction.
+The notebook includes saved example outputs and Colab `# @param` controls for changing the app inputs.
 
 ## Repository Structure
 

@@ -9,4 +9,3 @@ python-dotenv
 jupyter
 ipykernel
 openai
-ipywidgets
