@@ -1770,6 +1770,9 @@ def style_negative_returns(table):
         styles.loc[high_volatility, "30-Day Volatility"] = (
             f"color: {COLOR_TOKENS['negative']}; font-weight: 600;"
         )
+    if "Status" in table.columns:
+        below_filter = table["Status"] == "Below filter"
+        styles.loc[below_filter, :] = "color: #9A968C; opacity: .65;"
     return table.style.apply(lambda _: styles, axis=None)
 
 
@@ -1788,6 +1791,8 @@ def signal_column_config():
             format="%.3f",
         ),
         "Articles": st.column_config.NumberColumn("Art.", format="%d"),
+        "Rank": st.column_config.TextColumn("#", width="small"),
+        "Status": st.column_config.TextColumn("Status", width="medium"),
         "Review Score": st.column_config.ProgressColumn(
             "Ranker score",
             min_value=0,
@@ -2131,10 +2136,7 @@ def get_watchlist_summary(watchlist_df, risk_preference):
 
 def make_watchlist_table(prediction_table, risk_preference, probability_threshold):
     watchlist_df = prediction_table.copy()
-    watchlist_df = watchlist_df[watchlist_df["Probability"] >= probability_threshold].copy()
-
-    if watchlist_df.empty:
-        watchlist_df = prediction_table.copy()
+    watchlist_df["Passes Filter"] = watchlist_df["Probability"] >= probability_threshold
 
     if risk_preference == "Low":
         watchlist_df["Review Score"] = (
@@ -2155,7 +2157,27 @@ def make_watchlist_table(prediction_table, risk_preference, probability_threshol
             - (watchlist_df["30-Day Volatility"] * 0.05)
         )
 
-    return watchlist_df.sort_values("Review Score", ascending=False)
+    score_min = watchlist_df["Review Score"].min()
+    score_max = watchlist_df["Review Score"].max()
+    score_range = score_max - score_min
+    if score_range == 0:
+        watchlist_df["Review Score"] = 1
+    else:
+        watchlist_df["Review Score"] = (watchlist_df["Review Score"] - score_min) / score_range
+
+    watchlist_df = watchlist_df.sort_values(["Passes Filter", "Review Score"], ascending=[False, False])
+    watchlist_df["Status"] = watchlist_df["Passes Filter"].map({True: "Pass", False: "Below filter"})
+    pass_counter = 0
+    ranks = []
+    for passes_filter in watchlist_df["Passes Filter"]:
+        if passes_filter:
+            pass_counter += 1
+            ranks.append(str(pass_counter))
+        else:
+            ranks.append("-")
+    watchlist_df["Rank"] = ranks
+
+    return watchlist_df
 
 
 def render_streamlit_dashboard(prediction_table, chart_history_df, data_status):
@@ -2402,54 +2424,63 @@ def render_streamlit_dashboard(prediction_table, chart_history_df, data_status):
             "Minimum upward-move probability",
             0,
             100,
-            40,
+            50,
             5,
             key="watchlist_probability_threshold",
         ) / 100
 
         watchlist_df = make_watchlist_table(ranked, watch_risk, threshold)
-        strongest = watchlist_df.iloc[0]
-        lowest = watchlist_df.iloc[-1]
-        highest_risk = watchlist_df.sort_values("30-Day Volatility", ascending=False).iloc[0]
-        best_sentiment = watchlist_df.sort_values("Sentiment", ascending=False).iloc[0]
+        pass_df = watchlist_df[watchlist_df["Passes Filter"]].copy()
+        filtered_df = pass_df if not pass_df.empty else watchlist_df
+        pass_count = len(pass_df)
+        st.markdown(
+            f"""
+            <div class="filter-caption">≥ {threshold * 100:.0f}% · {pass_count} of {len(watchlist_df)} pass</div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        strongest = filtered_df.iloc[0]
+        lowest = filtered_df.iloc[-1]
+        highest_risk = filtered_df.sort_values("30-Day Volatility", ascending=False).iloc[0]
+        best_sentiment = filtered_df.sort_values("Sentiment", ascending=False).iloc[0]
 
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            render_kpi_card("Top watchlist name", strongest["Ticker"], format_percent(strongest["Probability"]))
+            render_kpi_card("Top pick", strongest["Ticker"], format_percent(strongest["Probability"]), "strong")
         with col2:
-            render_kpi_card("Lowest in filter", lowest["Ticker"], format_percent(lowest["Probability"]))
+            render_kpi_card("Lowest in filter", lowest["Ticker"], format_percent(lowest["Probability"]), "muted")
         with col3:
-            render_kpi_card("Highest volatility", highest_risk["Ticker"], format_percent(highest_risk["30-Day Volatility"]))
+            render_kpi_card("Riskiest in filter", highest_risk["Ticker"], format_percent(highest_risk["30-Day Volatility"]), "negative")
         with col4:
-            render_kpi_card("Best sentiment", best_sentiment["Ticker"], f"{best_sentiment['Sentiment']:.3f}")
+            render_kpi_card("Best sentiment", best_sentiment["Ticker"], f"{best_sentiment['Sentiment']:.3f}", "info")
 
-        render_section_title("Ranked Watchlist", "Review score changes based on the selected risk preference.")
-        st.dataframe(
-            prepare_display_table(
-                watchlist_df[
-                    [
-                        "Ticker",
-                        "Signal",
-                        "Probability",
-                        "7-Day Return",
-                        "30-Day Volatility",
-                        "Sentiment",
-                        "Articles",
-                        "Review Score",
-                    ]
-                ].assign(**{"Review Score": watchlist_df["Review Score"].map(lambda value: f"{value:.3f}")})
-            ),
-            use_container_width=True,
-            hide_index=True,
-            height=250,
+        render_section_title(
+            "Ranked Watchlist",
+            "Companies below the probability cutoff remain visible but are muted, so the user can see what was filtered out.",
         )
+        watchlist_table = watchlist_df[
+            [
+                "Rank",
+                "Ticker",
+                "Status",
+                "Probability",
+                "7-Day Return",
+                "30-Day Volatility",
+                "Sentiment",
+                "Articles",
+                "Review Score",
+            ]
+        ].copy()
+        display_table(watchlist_table, height=285)
 
-        render_section_title("Watchlist Ranking", "Higher review score means the company is more relevant for the selected filter and risk setting.")
+        render_section_title(
+            "Watchlist Ranking",
+            "Teal bars pass the current filter. Muted bars fall below the probability cutoff.",
+        )
         watchlist_chart_df = watchlist_df[["Ticker", "Review Score"]].copy()
-        st.altair_chart(
-            make_bar_chart(watchlist_chart_df, "Ticker", "Review Score", "#7EC4F7", 280),
-            use_container_width=True,
-        )
+        watchlist_chart_df["Passes Filter"] = watchlist_df["Passes Filter"].values
+        st.altair_chart(make_watchlist_score_chart(watchlist_chart_df, 280), use_container_width=True)
 
         with st.expander("How the watchlist ranking works"):
             st.write(
@@ -2458,15 +2489,13 @@ def render_streamlit_dashboard(prediction_table, chart_history_df, data_status):
                 "and high risk allows more recent movement."
             )
 
-        st.markdown(
-            """
-            <div class="ai-panel-title">AI watchlist summary</div>
-            <div class="ai-panel-copy">Generate a summary after setting the risk preference and probability filter.</div>
-            """,
-            unsafe_allow_html=True,
+        render_secondary_ai_action(
+            "AI watchlist summary",
+            "Generate a summary after setting the risk preference and probability filter.",
+            "Generate watchlist summary",
+            "watchlist_summary_button",
+            lambda: get_watchlist_summary(filtered_df, watch_risk),
         )
-        if st.button("Generate watchlist summary", use_container_width=True, key="watchlist_summary_button"):
-            st.info(get_watchlist_summary(watchlist_df, watch_risk))
 
     st.markdown(
         f"""
